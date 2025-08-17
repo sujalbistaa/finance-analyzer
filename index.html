@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Personal Finance Analyzer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.2/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons@2.47.0/icons-sprite.svg" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white">
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Main Layout -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-80 bg-black/30 backdrop-blur-xl border-r border-white/10 p-6 overflow-y-auto">
+            <!-- Logo -->
+            <div class="mb-8">
+                <div class="flex items-center space-x-3">
+                    <img src="logo.png" alt="FinanceAI Logo" class="w-10 h-10 rounded-xl shadow-glow object-cover bg-white/10 border border-white/20">
+                    <div>
+                        <h1 class="text-xl font-bold">FinanceAI</h1>
+                        <p class="text-xs text-gray-400">Personal Finance Analyzer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Settings -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium mb-3">API Settings</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">API Key</label>
+                        <input type="password" id="api-key" 
+                               value="tgp_v1_o319HuxtA3Phy_VoWmflw1_WXLLKXZENiz2PbD8Q6UA"
+                               class="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Model</label>
+                        <select id="model-select" class="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                            <option value="openai/gpt-oss-20b">GPT-OSS-20B</option>
+                            <option value="meta-llama/Llama-2-7b-chat-hf">Llama-2-7B</option>
+                            <option value="mistralai/Mistral-7B-Instruct-v0.1">Mistral-7B</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Temperature</label>
+                            <input type="number" id="temperature" value="0.25" min="0" max="2" step="0.1"
+                                   class="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Max Tokens</label>
+                            <input type="number" id="max-tokens" value="800" min="50" max="4000"
+                                   class="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium mb-3">Quick Actions</h3>
+                <div class="space-y-2">
+                    <button id="download-sample" class="w-full p-2 bg-gradient-to-r from-green-600 to-green-700 rounded-lg text-sm font-medium hover:from-green-700 hover:to-green-800 transition-all">
+                        Download Sample CSV
+                    </button>
+                    <button id="generate-insights" class="w-full p-2 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-purple-800 transition-all">
+                        Generate AI Insights
+                    </button>
+                    <button id="rebuild-summary" class="w-full p-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all">
+                        Rebuild Memory
+                    </button>
+                </div>
+            </div>
+
+
+
+            <!-- Security Notice -->
+            <div class="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div class="flex items-start space-x-2">
+                    <svg class="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-xs text-yellow-200 font-medium">Security Notice</p>
+                        <p class="text-xs text-yellow-300/80 mt-1">API keys are visible in browser. Use the optional proxy server for production.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Tab Navigation -->
+            <nav class="bg-black/20 backdrop-blur-xl border-b border-white/10 p-4">
+                <div class="flex space-x-1">
+                    <button class="tab-button active px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="chat">
+                        Chat
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="dashboard">
+                        Dashboard
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="transactions">
+                        Transactions
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="memory">
+                        Memory
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="settings">
+                        Settings
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-hidden">
+                <!-- Chat Tab -->
+                <div id="chat-tab" class="tab-content active h-full flex flex-col">
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+                    <div class="p-6 border-t border-white/10">
+                        <div class="flex space-x-4">
+                            <input type="text" id="chat-input" placeholder="Ask about your finances..."
+                                   class="flex-1 p-3 bg-white/5 border border-white/10 rounded-xl focus:border-blue-500 focus:outline-none">
+                            <button id="send-button" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all">
+                                Send
+                            </button>
+                            <button id="clear-chat" class="px-4 py-3 bg-red-600/20 text-red-400 rounded-xl hover:bg-red-600/30 transition-all">
+                                Clear
+                            </button>
+                        </div>
+                        <div id="chat-stats" class="mt-2 text-xs text-gray-400"></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content h-full overflow-y-auto p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="kpi-card">
+                            <div class="text-sm text-gray-400">Total Income</div>
+                            <div id="total-income" class="text-2xl font-bold text-green-400">₹0</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="text-sm text-gray-400">Total Spend</div>
+                            <div id="total-spend" class="text-2xl font-bold text-red-400">₹0</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="text-sm text-gray-400">Net Balance</div>
+                            <div id="net-balance" class="text-2xl font-bold">₹0</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="text-sm text-gray-400">Transactions</div>
+                            <div id="total-transactions" class="text-2xl font-bold text-blue-400">0</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Balance Over Time</h3>
+                            <div id="balance-chart"></div>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Spending by Category</h3>
+                            <div id="category-chart"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="transactions-tab" class="tab-content h-full flex flex-col">
+                    <div class="p-6 border-b border-white/10">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-semibold">Transactions</h2>
+                            <div class="flex space-x-2">
+                                <input type="file" id="csv-upload" accept=".csv" class="hidden">
+                                <button id="upload-button" class="px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all">
+                                    Upload CSV
+                                </button>
+                                <button id="categorize-button" class="px-4 py-2 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-700 transition-all">
+                                    Auto-Categorize
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <input type="text" id="search-transactions" placeholder="Search transactions..."
+                                   class="flex-1 p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                            <select id="category-filter" class="p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6">
+                        <div id="transactions-table" class="overflow-x-auto">
+                            <div class="text-center text-gray-400 py-8">
+                                No transactions loaded. Upload a CSV file to get started.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Memory Tab -->
+                <div id="memory-tab" class="tab-content h-full overflow-y-auto p-6">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Conversation Memory</h2>
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                            <div id="memory-summary" class="text-gray-300 mb-4">
+                                No conversation memory yet. Start chatting to build context.
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="edit-memory" class="px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all">
+                                    Edit Memory
+                                </button>
+                                <button id="export-memory" class="px-4 py-2 bg-green-600 rounded-lg text-sm font-medium hover:bg-green-700 transition-all">
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">User Profile</h3>
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                            <textarea id="user-profile" rows="6" placeholder="Enter your financial goals, preferences, and constraints..."
+                                      class="w-full bg-transparent border-none focus:outline-none text-gray-300 resize-none"></textarea>
+                            <button id="save-profile" class="mt-2 px-4 py-2 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-700 transition-all">
+                                Save Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content h-full overflow-y-auto p-6">
+                    <div class="max-w-2xl">
+                        <h2 class="text-xl font-semibold mb-6">Settings</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="setting-section">
+                                <h3 class="text-lg font-medium mb-4">Data Persistence</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="persist-conversations" class="form-checkbox">
+                                        <span>Save conversations locally</span>
+                                    </label>
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="persist-transactions" class="form-checkbox">
+                                        <span>Save transactions locally</span>
+                                    </label>
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="persist-memory" class="form-checkbox">
+                                        <span>Save conversation memory</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-section">
+                                <h3 class="text-lg font-medium mb-4">Data Management</h3>
+                                <div class="flex space-x-4">
+                                    <button id="export-all" class="px-4 py-2 bg-green-600 rounded-lg text-sm font-medium hover:bg-green-700 transition-all">
+                                        Export All Data
+                                    </button>
+                                    <button id="import-all" class="px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all">
+                                        Import Data
+                                    </button>
+                                    <button id="clear-all" class="px-4 py-2 bg-red-600 rounded-lg text-sm font-medium hover:bg-red-700 transition-all">
+                                        Clear All Data
+                                    </button>
+                                </div>
+                                <input type="file" id="import-file" accept=".json" class="hidden">
+                            </div>
+
+                            <div class="setting-section">
+                                <h3 class="text-lg font-medium mb-4">Context Settings</h3>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Keep Last K Messages</label>
+                                    <input type="number" id="keep-messages" value="12" min="1" max="50"
+                                           class="p-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-blue-500 focus:outline-none w-24">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Memory Editing -->
+    <div id="memory-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-2xl w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">Edit Conversation Memory</h3>
+            <textarea id="memory-editor" rows="10"
+                      class="w-full p-4 bg-white/5 border border-white/10 rounded-lg text-gray-300 focus:border-blue-500 focus:outline-none resize-none"></textarea>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="cancel-memory-edit" class="px-4 py-2 bg-gray-600 rounded-lg text-sm font-medium hover:bg-gray-700 transition-all">
+                    Cancel
+                </button>
+                <button id="save-memory-edit" class="px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
