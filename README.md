@@ -1,5 +1,7 @@
 #  Finance Analyzer
 
+Live on : https://financeanalyzersujal.netlify.app/
+
 Finance Analyzer is a simple web application that helps users track, analyze, and visualize their financial data in a clean and modern UI.  
 Built with **HTML, TailwindCSS, and JavaScript**, the project is lightweight and easy to deploy.
 
